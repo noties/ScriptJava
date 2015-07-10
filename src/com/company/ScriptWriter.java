@@ -26,21 +26,21 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private static final String VOID = "void ";
     private static final String METHODS = "methods(";
 
+    private static final String COMPILE_STATEMENT = "javac -nowarn -Xlint:none " + CACHE_PATH + JAVA_FILE;
     private static final String EXECUTE_STATEMENT = "java -cp " + CACHE_PATH + " Script";
+
     private static final String SUPPRESS_STATEMENT = "@SuppressWarnings({\"unchecked\", \"finally\", \"deprecation\", \"path\", \"serial\", \"fallthrough\"})";
 
     // used patterns
     private static final Pattern CLEAR_PATTERN = Pattern.compile("clear\\((.*)\\)");
 
-    private static final Pattern METHOD_PATTERN = Pattern.compile("[A-Za-z]{1}\\w*\\s+\\w+\\s*\\(.*\\)\\s*\\{.*\\}?");
+    private static final Pattern METHOD_PATTERN = Pattern.compile("[a-zA-Z]\\w*\\s+\\w+\\s*\\(.*\\)\\s*.*\\s*\\{.*\\}?");
 
     private static final Pattern BLOCK_START_PATTERN = Pattern.compile(".*\\{.*");
     private static final Pattern BLOCK_END_PATTERN = Pattern.compile(".*\\}\\s*;*");
 
     private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\w{1}.*\\=.*");
     private static final Pattern VARIABLE_NAME_PATTERN = Pattern.compile("(.*\\s+)(\\w+)(\\s*\\=\\s*.*)");
-
-    private final String compileStatement;
 
     private final List<String> variables = new ArrayList<String>();
     private final List<String> imports = new ArrayList<String>();
@@ -61,15 +61,10 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private int innerMethodBlocks = 0;
 
     public ScriptWriter() {
-        this.compileStatement = createCompileStatement();
         final File file = new File(CACHE_PATH);
         if (!file.exists()) {
             file.mkdirs();
         }
-    }
-
-    private String createCompileStatement() {
-        return "javac -nowarn -Xlint:none " + CACHE_PATH + JAVA_FILE;
     }
 
     @Override
@@ -166,7 +161,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
 
             // changes were made
             if (handled) {
-                final Process compileProcess = runtime.exec(compileStatement);
+                final Process compileProcess = runtime.exec(COMPILE_STATEMENT);
                 ProcessRedirect.redirect(compileProcess.getInputStream(), null);
                 ProcessRedirect.redirect(compileProcess.getErrorStream(), new ProcessRedirect.Callback() {
                     @Override
