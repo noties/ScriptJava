@@ -13,8 +13,8 @@ import java.util.regex.Pattern;
  */
 public class ScriptWriter implements ConsoleReader.Callback {
 
-    private static final String JAVA_FILE = ".cache/Script.java";
-    private static final String CACHE_FOLDER = ".cache";
+    private static final String JAVA_FILE = "Script.java";
+    private static final String CACHE_PATH = ".cache" + File.separator;
     private static final String IMPORT = "import ";
     private static final List<String> INITIAL_IMPORTS = Arrays.asList(
             "import java.util.*;",
@@ -24,6 +24,10 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private static final char SEMI_COLON = ';';
     private static final String STATIC = "static ";
     private static final String VOID = "void ";
+    private static final String METHODS = "methods(";
+
+    private static final String EXECUTE_STATEMENT = "java -cp " + CACHE_PATH + " Script";
+    private static final String SUPPRESS_STATEMENT = "@SuppressWarnings({\"unchecked\", \"finally\", \"deprecation\", \"path\", \"serial\", \"fallthrough\"})";
 
     // used patterns
     private static final Pattern CLEAR_PATTERN = Pattern.compile("clear\\((.*)\\)");
@@ -36,15 +40,19 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\w{1}.*\\=.*");
     private static final Pattern VARIABLE_NAME_PATTERN = Pattern.compile("(.*\\s+)(\\w+)(\\s*\\=\\s*.*)");
 
-    private PrintWriter writer;
+    private final String compileStatement;
+
     private final List<String> variables = new ArrayList<String>();
     private final List<String> imports = new ArrayList<String>();
     private final List<String> methods = new ArrayList<String>();
+
+    private PrintWriter writer;
     private boolean shouldExecute = true;
 
     private StringBuilder currentMethod = new StringBuilder();
     private boolean isWritingMethod = false;
     private boolean isMethodCompilePhase = false;
+    private boolean isMethodsRequested = false;
 
     private boolean isVariable = false;
     private boolean isErrorHandled = false;
@@ -53,10 +61,15 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private int innerMethodBlocks = 0;
 
     public ScriptWriter() {
-        final File file = new File(CACHE_FOLDER);
+        this.compileStatement = createCompileStatement();
+        final File file = new File(CACHE_PATH);
         if (!file.exists()) {
             file.mkdirs();
         }
+    }
+
+    private String createCompileStatement() {
+        return "javac -nowarn -Xlint:none " + CACHE_PATH + JAVA_FILE;
     }
 
     @Override
@@ -76,6 +89,12 @@ public class ScriptWriter implements ConsoleReader.Callback {
         // imports
         if (!handled) {
             handled = checkImports(wrapper);
+        }
+
+        // methods utility
+        isMethodsRequested = false;
+        if (!handled) {
+            handled = checkMethods(wrapper);
         }
 
         // method
@@ -106,7 +125,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
         isErrorHandled = false;
 
         try {
-            writer = new PrintWriter(JAVA_FILE, "UTF-8");
+            writer = new PrintWriter(CACHE_PATH + JAVA_FILE, "UTF-8");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
@@ -117,8 +136,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
             return;
         }
 
-        write(INITIAL_IMPORTS);
-        write(imports);
+        writeImports();
 
         writeSuppressStatements();
         writer.println("public class Script {");
@@ -148,7 +166,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
 
             // changes were made
             if (handled) {
-                final Process compileProcess = runtime.exec("javac -nowarn -Xlint:none " + JAVA_FILE);
+                final Process compileProcess = runtime.exec(compileStatement);
                 ProcessRedirect.redirect(compileProcess.getInputStream(), null);
                 ProcessRedirect.redirect(compileProcess.getErrorStream(), new ProcessRedirect.Callback() {
                     @Override
@@ -167,7 +185,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
             }
 
             if (shouldExecute) {
-                final Process process = runtime.exec("java -cp .cache/ Script");
+                final Process process = runtime.exec(EXECUTE_STATEMENT);
                 ProcessRedirect.redirect(process);
                 process.waitFor();
             }
@@ -179,14 +197,26 @@ public class ScriptWriter implements ConsoleReader.Callback {
         }
     }
 
+    private void writeImports() {
+        write(INITIAL_IMPORTS);
+        write(imports);
+        if (isMethodsRequested) {
+            writer.println("import java.lang.reflect.*;");
+        }
+    }
+
     private void writeSuppressStatements() {
-        writer.println("@SuppressWarnings({\"unchecked\", \"finally\", \"deprecation\", \"path\", \"serial\", \"fallthrough\"})");
+        writer.println(SUPPRESS_STATEMENT);
     }
 
     private void writeHelperMethods() {
-        writer.println("static String print(Object o){return String.valueOf(o);}");
-        writer.println("static String printf(String s, Object... a){return String.format(s, a);}");
-        writer.println("static String typeof(Object o){if (o == null) {return null;} return String.valueOf(o.getClass());}");
+        writer.println(_Methods.PRINT);
+        writer.println(_Methods.PRINT_F);
+        writer.println(_Methods.TYPE_OF);
+
+        if (isMethodsRequested) {
+            writer.println(_Methods.METHODS);
+        }
     }
 
     private boolean checkClear(StringWrapper wrapper) {
@@ -248,6 +278,12 @@ public class ScriptWriter implements ConsoleReader.Callback {
             return true;
         }
         return false;
+    }
+
+    private boolean checkMethods(StringWrapper wrapper) {
+        final String line = wrapper.getString();
+        isMethodsRequested = line.startsWith(METHODS);
+        return isMethodsRequested;
     }
 
     private ExecutionState checkMethod(StringWrapper wrapper) {
