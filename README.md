@@ -1,5 +1,6 @@
 # ScriptJava
-ScriptJava is a simple command line utility that helps to evaluate simple Java statements at runtime (aka scripting)
+ScriptJava is a simple command line utility that helps to evaluate simple Java statements at runtime (aka scripting).
+It may be used for educational purposes or just for fun of it as long as it offers a simple Java playground.
 
 ## Howto
 Get a hold of a `ScriptJava.jar` from a `binary` folder. Make sure that `java` & `javac` are in the system's PATH. Run in the terminal:
@@ -39,12 +40,18 @@ int getOtherInt(int what) {
 getOtherInt(3)
 ```
 
+If you wish to add a custom jar or jars as a dependency for a running script, create a folder named `lib` in ScriptJava.jar execution folder and place there your jars
+
 ### Utility methods
 
 ```java
 print(Object o);
 printf(String s, Object... args);
-typeof(Object o);
+typeof(Object o); // return human readable representation of object's type
+set(Object who, String fieldName, Object value);
+get(Object who, String fieldName);
+methods(Object who) // or a class (String.class) will print all object's class methods
+dict(Object who) // will print object's fields and it's values (without recursion)
 ```
 
 For a singleline statements that want to print an object `print` & `printf` commands are the best
@@ -62,6 +69,13 @@ Runnable makeRunnable() {
 ```
 Note that in this case semicolons are required
 
+`set` method will use reflection. It's possible to change `final` fields:
+```java
+String s = "Hello World!"
+void set(s, "value", new char[] { '!' }
+s // will print !
+```
+
 ### Methods
 All generated methods are static, so you must **not** define a `static` modifier for your methods.
 
@@ -70,7 +84,10 @@ By default each script has these in import section:
 ```java
 import java.util.*;
 import static java.lang.System.out;
+import java.io.*;
+import java.lang.reflect.*;
 ```
+
 To add a custom import start your command with `import`, like this:
 ```java
 import java.util.concurrent.*
