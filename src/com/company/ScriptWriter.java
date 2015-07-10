@@ -18,7 +18,8 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private static final String IMPORT = "import ";
     private static final List<String> INITIAL_IMPORTS = Arrays.asList(
             "import java.util.*;",
-            "import static java.lang.System.out;"
+            "import static java.lang.System.out;",
+            "import java.io.*;"
     );
     private static final String QUIT = "quit()";
     private static final char SEMI_COLON = ';';
