@@ -12,25 +12,11 @@ class _Methods {
 
     static final String PRINT = "static String print(Object o){return String.valueOf(o);}";
     static final String PRINT_F = "static String printf(String s, Object... a){return String.format(s, a);}";
-    static final String TYPE_OF = "static String typeof(Object o){if (o == null) {return null;} return String.valueOf(o.getClass());}";
+    static final String TYPE_OF = "static String typeof(Object o){if (o == null) {return null;} return ClassString.toString(o.getClass());}";
 
-    static final String METHODS = "" +
-            "static String methods(Object o) throws Throwable {\n" +
-            "    if (o == null) return \"null\";\n" +
-            "    final class Indent {\n" +
-            "        int count = 0;\n" +
-            "        public String toString() {\n" +
-            "            if (count == 0) {\n" +
-            "                return \"\";\n" +
-            "            }\n" +
-            "            char[] chars = new char[4 * count];\n" +
-            "            Arrays.fill(chars, ' ');\n" +
-            "            return new String(chars);\n" +
-            "        }\n" +
-            "    }\n" +
-            "    Indent indent = new Indent();\n" +
-            "    final class ClassString {\n" +
-            "        String toString(Class<?>[] classes) {\n" +
+    static final String CLASS_STRING = "" +
+            "    private static class ClassString {\n" +
+            "        static String toString(Class<?>[] classes) {\n" +
             "            if (classes == null\n" +
             "                    || classes.length == 0) {\n" +
             "                return \"\";\n" +
@@ -52,14 +38,29 @@ class _Methods {
             "            }\n" +
             "            return builder.toString();\n" +
             "        }\n" +
-            "        String toString(Class<?> c) {\n" +
+            "        static String toString(Class<?> c) {\n" +
             "            if (c.isArray()) {\n" +
             "                return c.getComponentType().getName() + \"[]\";\n" +
             "            }\n" +
             "            return c.getName();\n" +
             "        }\n" +
+            "    }";
+
+    static final String METHODS = "" +
+            "static String methods(Object o) throws Throwable {\n" +
+            "    if (o == null) return \"null\";\n" +
+            "    final class Indent {\n" +
+            "        int count = 0;\n" +
+            "        public String toString() {\n" +
+            "            if (count == 0) {\n" +
+            "                return \"\";\n" +
+            "            }\n" +
+            "            char[] chars = new char[4 * count];\n" +
+            "            Arrays.fill(chars, ' ');\n" +
+            "            return new String(chars);\n" +
+            "        }\n" +
             "    }\n" +
-            "    ClassString classString = new ClassString();\n" +
+            "    Indent indent = new Indent();\n" +
             "    Class<?> c = (o instanceof Class) ? (Class<?>) o : o.getClass();\n" +
             "    Class<?>[] interfaces = c.getInterfaces();\n" +
             "    final StringBuilder builder = new StringBuilder()\n" +
@@ -99,13 +100,13 @@ class _Methods {
             "                    .append(indent)\n" +
             "                    .append(Modifier.toString(m.getModifiers()))\n" +
             "                    .append(' ')\n" +
-            "                    .append(classString.toString(m.getReturnType()))\n" +
+            "                    .append(ClassString.toString(m.getReturnType()))\n" +
             "                    .append(' ')\n" +
             "                    .append(m.getDeclaringClass().getName())\n" +
             "                    .append('.')\n" +
             "                    .append(m.getName())\n" +
             "                    .append('(')\n" +
-            "                    .append(classString.toString(m.getParameterTypes()))\n" +
+            "                    .append(ClassString.toString(m.getParameterTypes()))\n" +
             "                    .append(')');\n" +
             "            Class<?>[] ets = m.getExceptionTypes();\n" +
             "            boolean isETSFirst = true;\n" +
@@ -160,42 +161,11 @@ class _Methods {
             "        }\n" +
             "    }\n" +
             "    Indent indent = new Indent();\n" +
-            "    final class ClassString {\n" +
-            "        String toString(Class<?>[] classes) {\n" +
-            "            if (classes == null\n" +
-            "                    || classes.length == 0) {\n" +
-            "                return \"\";\n" +
-            "            }\n" +
-            "            final StringBuilder builder = new StringBuilder();\n" +
-            "            boolean isFirst = true;\n" +
-            "            for (Class<?> c: classes) {\n" +
-            "                if (!isFirst) {\n" +
-            "                    builder.append(\", \");\n" +
-            "                } else {\n" +
-            "                    isFirst = false;\n" +
-            "                }\n" +
-            "                if (c.isArray()) {\n" +
-            "                    builder.append(c.getComponentType().getName())\n" +
-            "                            .append(\"[]\");\n" +
-            "                } else {\n" +
-            "                    builder.append(c.getName());\n" +
-            "                }\n" +
-            "            }\n" +
-            "            return builder.toString();\n" +
-            "        }\n" +
-            "        String toString(Class<?> c) {\n" +
-            "            if (c.isArray()) {\n" +
-            "                return c.getComponentType().getName() + \"[]\";\n" +
-            "            }\n" +
-            "            return c.getName();\n" +
-            "        }\n" +
-            "    }\n" +
-            "    ClassString classString = new ClassString();\n" +
             "    Class<?> c = o.getClass();\n" +
             "    StringBuilder builder = new StringBuilder()\n" +
             "            .append(Modifier.toString(c.getModifiers()))\n" +
             "            .append(' ')\n" +
-            "            .append(classString.toString(c))\n" +
+            "            .append(ClassString.toString(c))\n" +
             "            .append(\" {\\n \");\n" +
             "    indent.count++;\n" +
             "    boolean isFirst = true;\n" +
@@ -217,7 +187,7 @@ class _Methods {
             "                        .append(indent)\n" +
             "                        .append(Modifier.toString(field.getModifiers()))\n" +
             "                        .append(' ')\n" +
-            "                        .append(classString.toString(field.getType()))\n" +
+            "                        .append(ClassString.toString(field.getType()))\n" +
             "                        .append(' ')\n" +
             "                        .append(field.getName())\n" +
             "                        .append(\" = \");\n" +
@@ -320,6 +290,37 @@ class _Methods {
             "    }\n" +
             "}";
 
+//static class ClassString {
+//    static String toString(Class<?>[] classes) {
+//        if (classes == null
+//                || classes.length == 0) {
+//            return "";
+//        }
+//        final StringBuilder builder = new StringBuilder();
+//        boolean isFirst = true;
+//        for (Class<?> c: classes) {
+//            if (!isFirst) {
+//                builder.append(", ");
+//            } else {
+//                isFirst = false;
+//            }
+//            if (c.isArray()) {
+//                builder.append(c.getComponentType().getName())
+//                        .append("[]");
+//            } else {
+//                builder.append(c.getName());
+//            }
+//        }
+//        return builder.toString();
+//    }
+//    static String toString(Class<?> c) {
+//        if (c.isArray()) {
+//            return c.getComponentType().getName() + "[]";
+//        }
+//        return c.getName();
+//    }
+//}
+
 //static String methods(Object o) throws Throwable {
 //    if (o == null) return "null";
 //    final class Indent {
@@ -334,37 +335,6 @@ class _Methods {
 //        }
 //    }
 //    Indent indent = new Indent();
-//    final class ClassString {
-//        String toString(Class<?>[] classes) {
-//            if (classes == null
-//                    || classes.length == 0) {
-//                return "";
-//            }
-//            final StringBuilder builder = new StringBuilder();
-//            boolean isFirst = true;
-//            for (Class<?> c: classes) {
-//                if (!isFirst) {
-//                    builder.append(", ");
-//                } else {
-//                    isFirst = false;
-//                }
-//                if (c.isArray()) {
-//                    builder.append(c.getComponentType().getName())
-//                            .append("[]");
-//                } else {
-//                    builder.append(c.getName());
-//                }
-//            }
-//            return builder.toString();
-//        }
-//        String toString(Class<?> c) {
-//            if (c.isArray()) {
-//                return c.getComponentType().getName() + "[]";
-//            }
-//            return c.getName();
-//        }
-//    }
-//    ClassString classString = new ClassString();
 //    Class<?> c = (o instanceof Class) ? (Class<?>) o : o.getClass();
 //    Class<?>[] interfaces = c.getInterfaces();
 //    final StringBuilder builder = new StringBuilder()
@@ -404,13 +374,13 @@ class _Methods {
 //                    .append(indent)
 //                    .append(Modifier.toString(m.getModifiers()))
 //                    .append(' ')
-//                    .append(classString.toString(m.getReturnType()))
+//                    .append(ClassString.toString(m.getReturnType()))
 //                    .append(' ')
 //                    .append(m.getDeclaringClass().getName())
 //                    .append('.')
 //                    .append(m.getName())
 //                    .append('(')
-//                    .append(classString.toString(m.getParameterTypes()))
+//                    .append(ClassString.toString(m.getParameterTypes()))
 //                    .append(')');
 //            Class<?>[] ets = m.getExceptionTypes();
 //            boolean isETSFirst = true;
@@ -464,42 +434,11 @@ class _Methods {
 //        }
 //    }
 //    Indent indent = new Indent();
-//    final class ClassString {
-//        String toString(Class<?>[] classes) {
-//            if (classes == null
-//                    || classes.length == 0) {
-//                return "";
-//            }
-//            final StringBuilder builder = new StringBuilder();
-//            boolean isFirst = true;
-//            for (Class<?> c: classes) {
-//                if (!isFirst) {
-//                    builder.append(", ");
-//                } else {
-//                    isFirst = false;
-//                }
-//                if (c.isArray()) {
-//                    builder.append(c.getComponentType().getName())
-//                            .append("[]");
-//                } else {
-//                    builder.append(c.getName());
-//                }
-//            }
-//            return builder.toString();
-//        }
-//        String toString(Class<?> c) {
-//            if (c.isArray()) {
-//                return c.getComponentType().getName() + "[]";
-//            }
-//            return c.getName();
-//        }
-//    }
-//    ClassString classString = new ClassString();
 //    Class<?> c = o.getClass();
 //    StringBuilder builder = new StringBuilder()
 //            .append(Modifier.toString(c.getModifiers()))
 //            .append(' ')
-//            .append(classString.toString(c))
+//            .append(ClassString.toString(c))
 //            .append(" {\n ");
 //    indent.count++;
 //    boolean isFirst = true;
@@ -521,7 +460,7 @@ class _Methods {
 //                        .append(indent)
 //                        .append(Modifier.toString(field.getModifiers()))
 //                        .append(' ')
-//                        .append(classString.toString(field.getType()))
+//                        .append(ClassString.toString(field.getType()))
 //                        .append(' ')
 //                        .append(field.getName())
 //                        .append(" = ");

@@ -222,6 +222,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
     }
 
     private void writeHelperMethods() {
+        writer.println(_Methods.CLASS_STRING);
         writer.println(_Methods.PRINT);
         writer.println(_Methods.PRINT_F);
         writer.println(_Methods.TYPE_OF);
