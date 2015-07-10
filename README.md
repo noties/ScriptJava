@@ -3,12 +3,13 @@ ScriptJava is a simple command line utility that helps to evaluate simple Java s
 It may be used for educational purposes or just for fun of it as long as it offers a simple Java playground.
 
 ## Howto
-Get a hold of a `ScriptJava.jar` from a `binary` folder. Make sure that `java` & `javac` are in the system's PATH. Run in the terminal:
+Get a hold of a `ScriptJava.jar` from a `binary` folder (or build it from source). Make sure that `java` & `javac` are in the system's PATH. Run in the terminal:
 ```bash
 java -jar ScriptJava.jar
 ```
 
 ## What can be done
+*(note, that output for each statement is left out, but it's there :), it's executed right after you hit enter)*
 ```java
 "Hello world!"
 1 + 2
@@ -39,7 +40,12 @@ int getOtherInt(int what) {
 }
 getOtherInt(3)
 ```
+Note, that semicolon is required if line contains brakets
 
+### Language level
+The language level depends on `javac` from system's PATH. If it points to jdk1.8, then it's Java8, and so on.
+
+### Custom JARs
 If you wish to add a custom jar or jars as a dependency for a running script, create a folder named `lib` in ScriptJava.jar execution folder and place there your jars
 
 ### Utility methods
@@ -118,6 +124,12 @@ clear(imp met) // clears imports & methods
 
 ### Quit
 To exit execution evaluate a `quit()` command
+
+### Caveats
+* No classes (although they could be defined like `void class MyClass {private int i = 1; void someMethod() {} };` aka one liner with `void` at the beginning
+* If Threads are used they have to be set as daemon, otherwise script execution will freeze
+* Methods might be with any modifiers except for `static` as long as script will add `static` keyword at the beginning no matter what
+* No IDE support, if your are mistaken or this script fails you will have to write the last statement again (and again...)
 
 ## License
 
