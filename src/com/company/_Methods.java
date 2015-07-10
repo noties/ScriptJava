@@ -278,6 +278,47 @@ class _Methods {
             "    return builder.toString();\n" +
             "}";
 
+    static final String GET = "" +
+            "static Object get(Object o, String name) throws Throwable {\n" +
+            "    if (o == null) return null;\n" +
+            "    Class<?> c = o.getClass();\n" +
+            "    Field[] fields = c.getDeclaredFields();\n" +
+            "    if (fields == null\n" +
+            "            || fields.length == 0) {\n" +
+            "        return null;\n" +
+            "    }\n" +
+            "    for (Field f: fields) {\n" +
+            "        if (f.getName().equals(name)) {\n" +
+            "            f.setAccessible(true);\n" +
+            "            return f.get(o);\n" +
+            "        }\n" +
+            "    }\n" +
+            "    return null;\n" +
+            "}";
+
+    static final String SET = "" +
+            "static void set(Object o, String name, Object w) throws Throwable {\n" +
+            "    if (o == null) return;\n" +
+            "    Class<?> c = o.getClass();\n" +
+            "    Field[] fields = c.getDeclaredFields();\n" +
+            "    if (fields == null\n" +
+            "            || fields.length == 0) {\n" +
+            "        return;\n" +
+            "    }\n" +
+            "    for (Field f: fields) {\n" +
+            "        if (f.getName().equals(name)) {\n" +
+            "            f.setAccessible(true);\n" +
+            "            int m = f.getModifiers();\n" +
+            "            if (Modifier.isFinal(m)) {\n" +
+            "                Field modField = Field.class.getDeclaredField(\"modifiers\");\n" +
+            "                modField.setAccessible(true);\n" +
+            "                modField.setInt(f, m & ~Modifier.FINAL);\n" +
+            "            }\n" +
+            "            f.set(o, w);\n" +
+            "            return;\n" +
+            "        }\n" +
+            "    }\n" +
+            "}";
 
 //static String methods(Object o) throws Throwable {
 //    if (o == null) return "null";
@@ -409,135 +450,175 @@ class _Methods {
 //    return builder.toString();
 //}
 
-static String dict(Object o) throws Throwable {
-    if (o == null) return "null";
-    final class Indent {
-        int count = 0;
-        public String toString() {
-            if (count == 0) {
-                return "";
-            }
-            char[] chars = new char[4 * count];
-            Arrays.fill(chars, ' ');
-            return new String(chars);
-        }
-    }
-    Indent indent = new Indent();
-    final class ClassString {
-        String toString(Class<?>[] classes) {
-            if (classes == null
-                    || classes.length == 0) {
-                return "";
-            }
-            final StringBuilder builder = new StringBuilder();
-            boolean isFirst = true;
-            for (Class<?> c: classes) {
-                if (!isFirst) {
-                    builder.append(", ");
-                } else {
-                    isFirst = false;
-                }
-                if (c.isArray()) {
-                    builder.append(c.getComponentType().getName())
-                            .append("[]");
-                } else {
-                    builder.append(c.getName());
-                }
-            }
-            return builder.toString();
-        }
-        String toString(Class<?> c) {
-            if (c.isArray()) {
-                return c.getComponentType().getName() + "[]";
-            }
-            return c.getName();
-        }
-    }
-    ClassString classString = new ClassString();
-    Class<?> c = o.getClass();
-    StringBuilder builder = new StringBuilder()
-            .append(Modifier.toString(c.getModifiers()))
-            .append(' ')
-            .append(classString.toString(c))
-            .append(" {\n ");
-    indent.count++;
-    boolean isFirst = true;
-    while (true) {
-        if (!isFirst) {
-            builder.append("\n \n")
-                    .append(indent)
-                    .append("from class ")
-                    .append(c.getName())
-                    .append(" {");
-            indent.count++;
-        }
-        Field[] fields = c.getDeclaredFields();
-        if (fields != null
-                && fields.length > 0) {
-            for (Field field: fields) {
-                field.setAccessible(true);
-                builder.append(" \n")
-                        .append(indent)
-                        .append(Modifier.toString(field.getModifiers()))
-                        .append(' ')
-                        .append(classString.toString(field.getType()))
-                        .append(' ')
-                        .append(field.getName())
-                        .append(" = ");
-                Object obj = field.get(o);
-                String v;
-                if (obj == null) {
-                    v = "null";
-                } else if (obj.getClass().isArray()) {
-                    Class<?> objC = obj.getClass();
-                    Class<?> cT = objC.getComponentType();
-                    if (cT.isPrimitive()) {
-                        if (cT.equals(Byte.TYPE)) {
-                            v = Arrays.toString((byte[]) obj);
-                        } else if (cT.equals(Boolean.TYPE)) {
-                            v = Arrays.toString((boolean[]) obj);
-                        } else if (cT.equals(Character.TYPE)) {
-                            v = Arrays.toString((char[]) obj);
-                        } else if (cT.equals(Short.TYPE)) {
-                            v = Arrays.toString((short[]) obj);
-                        } else if (cT.equals(Integer.TYPE)) {
-                            v = Arrays.toString((int[]) obj);
-                        } else if (cT.equals(Long.TYPE)) {
-                            v = Arrays.toString((long[]) obj);
-                        } else if (cT.equals(Float.TYPE)) {
-                            v = Arrays.toString((float[]) obj);
-                        } else if (cT.equals(Double.TYPE)) {
-                            v = Arrays.toString((double[]) obj);
-                        } else {
-                            v = "void[]";
-                        }
-                    } else {
-                        v = Arrays.toString((Object[]) obj);
-                    }
-                } else {
-                    v = String.valueOf(obj);
-                }
-                builder.append(v);
-            }
-        }
+//static String dict(Object o) throws Throwable {
+//    if (o == null) return "null";
+//    final class Indent {
+//        int count = 0;
+//        public String toString() {
+//            if (count == 0) {
+//                return "";
+//            }
+//            char[] chars = new char[4 * count];
+//            Arrays.fill(chars, ' ');
+//            return new String(chars);
+//        }
+//    }
+//    Indent indent = new Indent();
+//    final class ClassString {
+//        String toString(Class<?>[] classes) {
+//            if (classes == null
+//                    || classes.length == 0) {
+//                return "";
+//            }
+//            final StringBuilder builder = new StringBuilder();
+//            boolean isFirst = true;
+//            for (Class<?> c: classes) {
+//                if (!isFirst) {
+//                    builder.append(", ");
+//                } else {
+//                    isFirst = false;
+//                }
+//                if (c.isArray()) {
+//                    builder.append(c.getComponentType().getName())
+//                            .append("[]");
+//                } else {
+//                    builder.append(c.getName());
+//                }
+//            }
+//            return builder.toString();
+//        }
+//        String toString(Class<?> c) {
+//            if (c.isArray()) {
+//                return c.getComponentType().getName() + "[]";
+//            }
+//            return c.getName();
+//        }
+//    }
+//    ClassString classString = new ClassString();
+//    Class<?> c = o.getClass();
+//    StringBuilder builder = new StringBuilder()
+//            .append(Modifier.toString(c.getModifiers()))
+//            .append(' ')
+//            .append(classString.toString(c))
+//            .append(" {\n ");
+//    indent.count++;
+//    boolean isFirst = true;
+//    while (true) {
+//        if (!isFirst) {
+//            builder.append("\n \n")
+//                    .append(indent)
+//                    .append("from class ")
+//                    .append(c.getName())
+//                    .append(" {");
+//            indent.count++;
+//        }
+//        Field[] fields = c.getDeclaredFields();
+//        if (fields != null
+//                && fields.length > 0) {
+//            for (Field field: fields) {
+//                field.setAccessible(true);
+//                builder.append(" \n")
+//                        .append(indent)
+//                        .append(Modifier.toString(field.getModifiers()))
+//                        .append(' ')
+//                        .append(classString.toString(field.getType()))
+//                        .append(' ')
+//                        .append(field.getName())
+//                        .append(" = ");
+//                Object obj = field.get(o);
+//                String v;
+//                if (obj == null) {
+//                    v = "null";
+//                } else if (obj.getClass().isArray()) {
+//                    Class<?> objC = obj.getClass();
+//                    Class<?> cT = objC.getComponentType();
+//                    if (cT.isPrimitive()) {
+//                        if (cT.equals(Byte.TYPE)) {
+//                            v = Arrays.toString((byte[]) obj);
+//                        } else if (cT.equals(Boolean.TYPE)) {
+//                            v = Arrays.toString((boolean[]) obj);
+//                        } else if (cT.equals(Character.TYPE)) {
+//                            v = Arrays.toString((char[]) obj);
+//                        } else if (cT.equals(Short.TYPE)) {
+//                            v = Arrays.toString((short[]) obj);
+//                        } else if (cT.equals(Integer.TYPE)) {
+//                            v = Arrays.toString((int[]) obj);
+//                        } else if (cT.equals(Long.TYPE)) {
+//                            v = Arrays.toString((long[]) obj);
+//                        } else if (cT.equals(Float.TYPE)) {
+//                            v = Arrays.toString((float[]) obj);
+//                        } else if (cT.equals(Double.TYPE)) {
+//                            v = Arrays.toString((double[]) obj);
+//                        } else {
+//                            v = "void[]";
+//                        }
+//                    } else {
+//                        v = Arrays.toString((Object[]) obj);
+//                    }
+//                } else {
+//                    v = String.valueOf(obj);
+//                }
+//                builder.append(v);
+//            }
+//        }
+//
+//        if (!isFirst) {
+//            indent.count--;
+//            builder.append('\n')
+//                    .append(indent)
+//                    .append("}\n ");
+//        } else {
+//            isFirst = false;
+//        }
+//
+//        c = c.getSuperclass();
+//        if (c == null) {
+//            break;
+//        }
+//    }
+//    indent.count = 0;
+//    builder.append(indent)
+//            .append("};");
+//    return builder.toString();
+//}
 
-        if (!isFirst) {
-            indent.count--;
-            builder.append('\n')
-                    .append(indent)
-                    .append("}\n ");
-        } else {
-            isFirst = false;
-        }
+//static Object get(Object o, String name) throws Throwable {
+//    if (o == null) return null;
+//    Class<?> c = o.getClass();
+//    Field[] fields = c.getDeclaredFields();
+//    if (fields == null
+//            || fields.length == 0) {
+//        return null;
+//    }
+//    for (Field f: fields) {
+//        if (f.getName().equals(name)) {
+//            f.setAccessible(true);
+//            return f.get(o);
+//        }
+//    }
+//    return null;
+//}
 
-        c = c.getSuperclass();
-        if (c == null) {
-            break;
-        }
-    }
-    indent.count = 0;
-    builder.append(indent)
-            .append("};");
-    return builder.toString();
-}
+//static void set(Object o, String name, Object w) throws Throwable {
+//    if (o == null) return;
+//    Class<?> c = o.getClass();
+//    Field[] fields = c.getDeclaredFields();
+//    if (fields == null
+//            || fields.length == 0) {
+//        return;
+//    }
+//    for (Field f: fields) {
+//        if (f.getName().equals(name)) {
+//            f.setAccessible(true);
+//            int m = f.getModifiers();
+//            if (Modifier.isFinal(m)) {
+//                Field modField = Field.class.getDeclaredField("modifiers");
+//                modField.setAccessible(true);
+//                modField.setInt(f, m & ~Modifier.FINAL);
+//            }
+//            f.set(o, w);
+//            return;
+//        }
+//    }
+//}
 }

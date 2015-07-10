@@ -19,7 +19,8 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private static final List<String> INITIAL_IMPORTS = Arrays.asList(
             "import java.util.*;",
             "import static java.lang.System.out;",
-            "import java.io.*;"
+            "import java.io.*;",
+            "import java.lang.reflect.*;"
     );
     private static final String QUIT = "quit()";
     private static final char SEMI_COLON = ';';
@@ -64,6 +65,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private StringBuilder currentMethod = new StringBuilder();
     private boolean isWritingMethod = false;
     private boolean isMethodCompilePhase = false;
+
     private boolean isMethodsRequested = false;
     private boolean isDictRequested = false;
 
@@ -213,9 +215,6 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private void writeImports() {
         write(INITIAL_IMPORTS);
         write(imports);
-        if (isMethodsRequested || isDictRequested) {
-            writer.println("import java.lang.reflect.*;");
-        }
     }
 
     private void writeSuppressStatements() {
@@ -226,6 +225,8 @@ public class ScriptWriter implements ConsoleReader.Callback {
         writer.println(_Methods.PRINT);
         writer.println(_Methods.PRINT_F);
         writer.println(_Methods.TYPE_OF);
+        writer.println(_Methods.GET);
+        writer.println(_Methods.SET);
 
         if (isMethodsRequested) {
             writer.println(_Methods.METHODS);
