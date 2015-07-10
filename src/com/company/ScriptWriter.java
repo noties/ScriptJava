@@ -26,9 +26,20 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private static final String STATIC = "static ";
     private static final String VOID = "void ";
     private static final String METHODS = "methods(";
+    private static final String DICT = "dict(";
 
-    private static final String COMPILE_STATEMENT = "javac -cp lib/*; -nowarn -Xlint:none " + CACHE_PATH + JAVA_FILE;
-    private static final String EXECUTE_STATEMENT = "java -cp lib/*;" + CACHE_PATH + " Script";
+    private static final String COMPILE_STATEMENT;
+    private static final String EXECUTE_STATEMENT;
+    static {
+        final String sep;
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            sep = ";";
+        } else {
+            sep = ":";
+        }
+        COMPILE_STATEMENT = "javac -cp lib/*" + sep + " -nowarn -Xlint:none " + CACHE_PATH + JAVA_FILE;
+        EXECUTE_STATEMENT = "java -cp lib/*" + sep + CACHE_PATH + " Script";
+    }
 
     private static final String SUPPRESS_STATEMENT = "@SuppressWarnings({\"unchecked\", \"finally\", \"deprecation\", \"path\", \"serial\", \"fallthrough\"})";
 
@@ -54,6 +65,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private boolean isWritingMethod = false;
     private boolean isMethodCompilePhase = false;
     private boolean isMethodsRequested = false;
+    private boolean isDictRequested = false;
 
     private boolean isVariable = false;
     private boolean isErrorHandled = false;
@@ -91,6 +103,11 @@ public class ScriptWriter implements ConsoleReader.Callback {
         isMethodsRequested = false;
         if (!handled) {
             handled = checkMethods(wrapper);
+        }
+
+        isDictRequested = false;
+        if (!handled) {
+            handled = checkDict(wrapper);
         }
 
         // method
@@ -196,7 +213,7 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private void writeImports() {
         write(INITIAL_IMPORTS);
         write(imports);
-        if (isMethodsRequested) {
+        if (isMethodsRequested || isDictRequested) {
             writer.println("import java.lang.reflect.*;");
         }
     }
@@ -212,6 +229,8 @@ public class ScriptWriter implements ConsoleReader.Callback {
 
         if (isMethodsRequested) {
             writer.println(_Methods.METHODS);
+        } else if (isDictRequested) {
+            writer.println(_Methods.DICT);
         }
     }
 
@@ -280,6 +299,11 @@ public class ScriptWriter implements ConsoleReader.Callback {
         final String line = wrapper.getString();
         isMethodsRequested = line.startsWith(METHODS);
         return isMethodsRequested;
+    }
+
+    private boolean checkDict(StringWrapper wrapper) {
+        isDictRequested = wrapper.getString().startsWith(DICT);
+        return isDictRequested;
     }
 
     private ExecutionState checkMethod(StringWrapper wrapper) {
