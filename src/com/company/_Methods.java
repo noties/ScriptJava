@@ -28,7 +28,7 @@ class _Methods {
                     "        }\n" +
                     "    }\n" +
                     "    Indent indent = new Indent();\n" +
-                    "    final class ArraysString {\n" +
+                    "    final class ClassString {\n" +
                     "        String toString(Class<?>[] classes) {\n" +
                     "            if (classes == null\n" +
                     "                    || classes.length == 0) {\n" +
@@ -51,14 +51,34 @@ class _Methods {
                     "            }\n" +
                     "            return builder.toString();\n" +
                     "        }\n" +
+                    "        String toString(Class<?> c) {\n" +
+                    "            if (c.isArray()) {\n" +
+                    "                return c.getComponentType().getName() + \"[]\";\n" +
+                    "            }\n" +
+                    "            return c.getName();\n" +
+                    "        }\n" +
                     "    }\n" +
-                    "    ArraysString arraysString = new ArraysString();\n" +
+                    "    ClassString classString = new ClassString();\n" +
                     "    Class<?> c = (o instanceof Class) ? (Class<?>) o : o.getClass();\n" +
+                    "    Class<?>[] interfaces = c.getInterfaces();\n" +
                     "    final StringBuilder builder = new StringBuilder()\n" +
                     "            .append(Modifier.toString(c.getModifiers()))\n" +
                     "            .append(' ')\n" +
-                    "            .append(c.getName())\n" +
-                    "            .append(\": {\\n \");\n" +
+                    "            .append(c.getName());\n" +
+                    "    if (interfaces != null\n" +
+                    "            && interfaces.length > 0) {\n" +
+                    "        boolean isInterfacesFirst = true;\n" +
+                    "        for (Class<?> i: interfaces) {\n" +
+                    "            if (!isInterfacesFirst) {\n" +
+                    "                builder.append(\", \");\n" +
+                    "            } else {\n" +
+                    "                builder.append(\" implements \");\n" +
+                    "                isInterfacesFirst = false;\n" +
+                    "            }\n" +
+                    "            builder.append(i.getName());\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "    builder.append(\" {\\n \");\n" +
                     "    indent.count = 1;\n" +
                     "    boolean isFirst = true;\n" +
                     "    while (true) {\n" +
@@ -78,13 +98,13 @@ class _Methods {
                     "                    .append(indent)\n" +
                     "                    .append(Modifier.toString(m.getModifiers()))\n" +
                     "                    .append(' ')\n" +
-                    "                    .append(m.getReturnType().getName())\n" +
+                    "                    .append(classString.toString(m.getReturnType()))\n" +
                     "                    .append(' ')\n" +
                     "                    .append(m.getDeclaringClass().getName())\n" +
                     "                    .append('.')\n" +
                     "                    .append(m.getName())\n" +
                     "                    .append('(')\n" +
-                    "                    .append(arraysString.toString(m.getParameterTypes()))\n" +
+                    "                    .append(classString.toString(m.getParameterTypes()))\n" +
                     "                    .append(')');\n" +
                     "            Class<?>[] ets = m.getExceptionTypes();\n" +
                     "            boolean isETSFirst = true;\n" +
@@ -138,7 +158,7 @@ static String methods(Object o) throws Throwable {
         }
     }
     Indent indent = new Indent();
-    final class ArraysString {
+    final class ClassString {
         String toString(Class<?>[] classes) {
             if (classes == null
                     || classes.length == 0) {
@@ -161,14 +181,34 @@ static String methods(Object o) throws Throwable {
             }
             return builder.toString();
         }
+        String toString(Class<?> c) {
+            if (c.isArray()) {
+                return c.getComponentType().getName() + "[]";
+            }
+            return c.getName();
+        }
     }
-    ArraysString arraysString = new ArraysString();
+    ClassString classString = new ClassString();
     Class<?> c = (o instanceof Class) ? (Class<?>) o : o.getClass();
+    Class<?>[] interfaces = c.getInterfaces();
     final StringBuilder builder = new StringBuilder()
             .append(Modifier.toString(c.getModifiers()))
             .append(' ')
-            .append(c.getName())
-            .append(": {\n ");
+            .append(c.getName());
+    if (interfaces != null
+            && interfaces.length > 0) {
+        boolean isInterfacesFirst = true;
+        for (Class<?> i: interfaces) {
+            if (!isInterfacesFirst) {
+                builder.append(", ");
+            } else {
+                builder.append(" implements ");
+                isInterfacesFirst = false;
+            }
+            builder.append(i.getName());
+        }
+    }
+    builder.append(" {\n ");
     indent.count = 1;
     boolean isFirst = true;
     while (true) {
@@ -188,13 +228,13 @@ static String methods(Object o) throws Throwable {
                     .append(indent)
                     .append(Modifier.toString(m.getModifiers()))
                     .append(' ')
-                    .append(m.getReturnType().getName())
+                    .append(classString.toString(m.getReturnType()))
                     .append(' ')
                     .append(m.getDeclaringClass().getName())
                     .append('.')
                     .append(m.getName())
                     .append('(')
-                    .append(arraysString.toString(m.getParameterTypes()))
+                    .append(classString.toString(m.getParameterTypes()))
                     .append(')');
             Class<?>[] ets = m.getExceptionTypes();
             boolean isETSFirst = true;

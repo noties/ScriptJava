@@ -27,8 +27,8 @@ public class ScriptWriter implements ConsoleReader.Callback {
     private static final String VOID = "void ";
     private static final String METHODS = "methods(";
 
-    private static final String COMPILE_STATEMENT = "javac -nowarn -Xlint:none " + CACHE_PATH + JAVA_FILE;
-    private static final String EXECUTE_STATEMENT = "java -cp " + CACHE_PATH + " Script";
+    private static final String COMPILE_STATEMENT = "javac -cp lib/*; -nowarn -Xlint:none " + CACHE_PATH + JAVA_FILE;
+    private static final String EXECUTE_STATEMENT = "java -cp lib/*;" + CACHE_PATH + " Script";
 
     private static final String SUPPRESS_STATEMENT = "@SuppressWarnings({\"unchecked\", \"finally\", \"deprecation\", \"path\", \"serial\", \"fallthrough\"})";
 
