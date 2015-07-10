@@ -249,44 +249,52 @@ class _Methods {
             "}";
 
     static final String GET = "" +
-            "static Object get(Object o, String name) throws Throwable {\n" +
-            "    if (o == null) return null;\n" +
-            "    Class<?> c = o.getClass();\n" +
-            "    Field[] fields = c.getDeclaredFields();\n" +
-            "    if (fields == null\n" +
-            "            || fields.length == 0) {\n" +
-            "        return null;\n" +
-            "    }\n" +
-            "    for (Field f: fields) {\n" +
-            "        if (f.getName().equals(name)) {\n" +
-            "            f.setAccessible(true);\n" +
-            "            return f.get(o);\n" +
+            "static Object get(Object o, String name) {\n" +
+            "    try {\n" +
+            "        if (o == null) return null;\n" +
+            "        Class<?> c = o.getClass();\n" +
+            "        Field[] fields = c.getDeclaredFields();\n" +
+            "        if (fields == null\n" +
+            "                || fields.length == 0) {\n" +
+            "            return null;\n" +
             "        }\n" +
+            "        for (Field f: fields) {\n" +
+            "            if (f.getName().equals(name)) {\n" +
+            "                f.setAccessible(true);\n" +
+            "                return f.get(o);\n" +
+            "            }\n" +
+            "        }\n" +
+            "    } catch (Throwable t) {\n" +
+            "        t.printStackTrace();\n" +
             "    }\n" +
             "    return null;\n" +
             "}";
 
     static final String SET = "" +
-            "static void set(Object o, String name, Object w) throws Throwable {\n" +
-            "    if (o == null) return;\n" +
-            "    Class<?> c = o.getClass();\n" +
-            "    Field[] fields = c.getDeclaredFields();\n" +
-            "    if (fields == null\n" +
-            "            || fields.length == 0) {\n" +
-            "        return;\n" +
-            "    }\n" +
-            "    for (Field f: fields) {\n" +
-            "        if (f.getName().equals(name)) {\n" +
-            "            f.setAccessible(true);\n" +
-            "            int m = f.getModifiers();\n" +
-            "            if (Modifier.isFinal(m)) {\n" +
-            "                Field modField = Field.class.getDeclaredField(\"modifiers\");\n" +
-            "                modField.setAccessible(true);\n" +
-            "                modField.setInt(f, m & ~Modifier.FINAL);\n" +
-            "            }\n" +
-            "            f.set(o, w);\n" +
+            "static void set(Object o, String name, Object w) {\n" +
+            "    try {\n" +
+            "        if (o == null) return;\n" +
+            "        Class<?> c = o.getClass();\n" +
+            "        Field[] fields = c.getDeclaredFields();\n" +
+            "        if (fields == null\n" +
+            "                || fields.length == 0) {\n" +
             "            return;\n" +
             "        }\n" +
+            "        for (Field f: fields) {\n" +
+            "            if (f.getName().equals(name)) {\n" +
+            "                f.setAccessible(true);\n" +
+            "                int m = f.getModifiers();\n" +
+            "                if (Modifier.isFinal(m)) {\n" +
+            "                    Field modField = Field.class.getDeclaredField(\"modifiers\");\n" +
+            "                    modField.setAccessible(true);\n" +
+            "                    modField.setInt(f, m & ~Modifier.FINAL);\n" +
+            "                }\n" +
+            "                f.set(o, w);\n" +
+            "                return;\n" +
+            "            }\n" +
+            "        }\n" +
+            "    } catch (Throwable t) {\n" +
+            "        t.printStackTrace();\n" +
             "    }\n" +
             "}";
 
@@ -521,43 +529,51 @@ class _Methods {
 //    return builder.toString();
 //}
 
-//static Object get(Object o, String name) throws Throwable {
-//    if (o == null) return null;
-//    Class<?> c = o.getClass();
-//    Field[] fields = c.getDeclaredFields();
-//    if (fields == null
-//            || fields.length == 0) {
-//        return null;
-//    }
-//    for (Field f: fields) {
-//        if (f.getName().equals(name)) {
-//            f.setAccessible(true);
-//            return f.get(o);
+//static Object get(Object o, String name) {
+//    try {
+//        if (o == null) return null;
+//        Class<?> c = o.getClass();
+//        Field[] fields = c.getDeclaredFields();
+//        if (fields == null
+//                || fields.length == 0) {
+//            return null;
 //        }
+//        for (Field f: fields) {
+//            if (f.getName().equals(name)) {
+//                f.setAccessible(true);
+//                return f.get(o);
+//            }
+//        }
+//    } catch (Throwable t) {
+//        t.printStackTrace();
 //    }
 //    return null;
 //}
-
-//static void set(Object o, String name, Object w) throws Throwable {
-//    if (o == null) return;
-//    Class<?> c = o.getClass();
-//    Field[] fields = c.getDeclaredFields();
-//    if (fields == null
-//            || fields.length == 0) {
-//        return;
-//    }
-//    for (Field f: fields) {
-//        if (f.getName().equals(name)) {
-//            f.setAccessible(true);
-//            int m = f.getModifiers();
-//            if (Modifier.isFinal(m)) {
-//                Field modField = Field.class.getDeclaredField("modifiers");
-//                modField.setAccessible(true);
-//                modField.setInt(f, m & ~Modifier.FINAL);
-//            }
-//            f.set(o, w);
+//
+//static void set(Object o, String name, Object w) {
+//    try {
+//        if (o == null) return;
+//        Class<?> c = o.getClass();
+//        Field[] fields = c.getDeclaredFields();
+//        if (fields == null
+//                || fields.length == 0) {
 //            return;
 //        }
+//        for (Field f: fields) {
+//            if (f.getName().equals(name)) {
+//                f.setAccessible(true);
+//                int m = f.getModifiers();
+//                if (Modifier.isFinal(m)) {
+//                    Field modField = Field.class.getDeclaredField("modifiers");
+//                    modField.setAccessible(true);
+//                    modField.setInt(f, m & ~Modifier.FINAL);
+//                }
+//                f.set(o, w);
+//                return;
+//            }
+//        }
+//    } catch (Throwable t) {
+//        t.printStackTrace();
 //    }
 //}
 }
