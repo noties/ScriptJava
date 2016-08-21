@@ -8,8 +8,14 @@ There are a lot of benefits for a programming language to have a [REPL](https://
 
 Writing *whole* Java code in command line seems like an overkill. Creating a class, then main method, then call to `System.out.print()` to execute such simple as `Integer.MAX_VALUE` command seems like a long way. What's why ScriptJava is *not* completely Java REPL. For example, semicolons(`;`) are *mostly* optional. There are a lot of *build-ins* methods, that can save a coder a few keyboard strokes. So, yeah, to know the value of `Integer.MAX_VALUE` you just input `Integer.MAX_VALUE`.
 
-// gif with Integer.MAX_VALUE
-// another gifs
+![](https://raw.githubusercontent.com/noties/ScriptJava/master/gif/1.gif)
+![](https://raw.githubusercontent.com/noties/ScriptJava/master/gif/2.gif)
+
+![](https://raw.githubusercontent.com/noties/ScriptJava/master/gif/3.gif)
+![](https://raw.githubusercontent.com/noties/ScriptJava/master/gif/4.gif)
+
+![](https://raw.githubusercontent.com/noties/ScriptJava/master/gif/5.gif)
+![](https://raw.githubusercontent.com/noties/ScriptJava/master/gif/6.gif)
 
 ## Build-in functions
 * **`bool()`** -> inspired by python's function. In short: `null`, `0`, or `""`(empty string) returns `false`. Defined in `Bool.java`

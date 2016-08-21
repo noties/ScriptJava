@@ -25,6 +25,9 @@ public class Network {
     private static final String HTTP_GET    = "GET";
     private static final String HTTP_POST   = "POST";
 
+    private static final String USER_AGENT_KEY = "User-Agent";
+    private static final String USER_AGENT_VALUE = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
+
     public static String get(String url) {
         return http(url, HTTP_GET, null, null);
     }
@@ -53,9 +56,16 @@ public class Network {
             connection.setRequestMethod(method);
 
             if (Bool.bool(properties)) {
+
+                if (!properties.containsKey(USER_AGENT_KEY)) {
+                    connection.setRequestProperty(USER_AGENT_KEY, USER_AGENT_VALUE);
+                }
+
                 for (Map.Entry<String, ?> entry: properties.entrySet()) {
                     connection.setRequestProperty(entry.getKey(), String.valueOf(entry.getValue()));
                 }
+            } else {
+                connection.setRequestProperty(USER_AGENT_KEY, USER_AGENT_VALUE);
             }
 
             if (HTTP_POST.equals(method)) {
