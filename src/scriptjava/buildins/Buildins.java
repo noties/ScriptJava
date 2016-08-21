@@ -19,8 +19,18 @@ import java.util.*;
 
 public class Buildins {
 
-    public static void print(Object value) {
-        System.out.println(Str.str(value));
+    public static void print(Object value, Object... others) {
+
+        System.out.print(Str.str(value));
+
+        if (Bool.bool(others)) {
+            for (Object o: others) {
+                System.out.print(", ");
+                System.out.print(Str.str(o));
+            }
+        }
+
+        System.out.println();
     }
 
     public static void printf(String message, Object... args) {

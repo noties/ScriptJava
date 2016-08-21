@@ -1,140 +1,88 @@
 # ScriptJava
-ScriptJava is a simple command line utility that helps to evaluate simple Java statements at runtime (aka scripting).
-It may be used for educational purposes or just for fun of it as long as it offers a simple Java playground.
+Java REPL today
 
-## Howto
-Get a hold of a `ScriptJava.jar` from a `binary` folder (or build it from source). Make sure that `java` & `javac` are in the system's PATH. Run in the terminal:
-```bash
-java -jar ScriptJava.jar
-```
 
-## What can be done
-*(note, that output for each statement is left out, but it's there :), it's executed right after you hit enter)*
+There are a lot of benefits for a programming language to have a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop). It helps one learn and explore the language features, gives ability to execute fast a code in question without launching IDE or modifiying existing project.
+
+
+
+Writing *whole* Java code in command line seems like an overkill. Creating a class, then main method, then call to `System.out.print()` to execute such simple as `Integer.MAX_VALUE` command seems like a long way. What's why ScriptJava is *not* completely Java REPL. For example, semicolons(`;`) are *mostly* optional. There are a lot of *build-ins* methods, that can save a coder a few keyboard strokes. So, yeah, to know the value of `Integer.MAX_VALUE` you just input `Integer.MAX_VALUE`.
+
+// gif with Integer.MAX_VALUE
+// another gifs
+
+## Build-in functions
+* **`bool()`** -> inspired by python's function. In short: `null`, `0`, or `""`(empty string) returns `false`. Defined in `Bool.java`
+* **`len()`** - > inspired by python's function. Unifies calls to get length of different objects. Defined in `Length.java`
+* **`str()`** - > returns *good* object representation as a String. Defined in `Str.java`. In case of a file (if exists) returns file contents as a String
+* **`print()`** > do as expected. Accepts multiple objects: `print(1, 2, 3, 4)`. Every object's string representation will be obtained via `str()` call
+* **`printf()`** -> Helper method to call `System.out.printf()`. Won't change the objects representation
+* **`list()`** -> creates a list from supplied arguments, `list(1, 2, 3, 4)`
+* **`map()`** -> original signature of this method is a bit scary: `map(String[] keys, Object[] values)`, but with the help of the substitution command becomes more friendly: `map(key1: 1, key2: 2)`
+* **`bin()`** -> returns binary representation of an integer value
+* **`hex()`** -> return hex representation of an integer value
+* **`date()`** -> helper method to call `new Date()`
+* **`now()`** -> helper method to call `System.currentTimeMillis()`
+* **`exec()`** -> executes supplied command as a String in a different process, returns String (the process output): `exec("java -version")`
+* **`file()`** -> this method has different signatures. Called without parameters returns current execution folder. Called with a String as a parameter -> constructs File object with specified path
+* **`del()`** -> removes file, takes a File object or a path
+* **`write()`** -> takes a File object and it's contents as a String. Will write contents to a file
+* **`json()`** -> Super primitive json parser that always returns a Map. Please note, that arrays are represented as a `Map<Integer, Object>`
+* **`get()`** -> executes GET http request, returns response as a String
+* **`post()`** -> executes POST http request, returns response as a String
+* **`range()`** -> creates a *range* of integers to be easily interated, `for (int i: range(10))`. Returns `int[]`. has 3 signatures: `range(end)`, `range(start, end)`, `range(start, end, step)`
+* **`dict()`** -> returns object's meta info (class name, parent class name, implements), fields and values. Has ability to return also info about methods
+* **`type()`** -> returns human readable Type info (redirects call to `str()`)
+* **`toMap()`** -> converts an object into a `Map<String, Object>` (no recursive calls)
+* **`fromMap()`** -> constructs an object from supplied `Map<String, Object>`
+* **`set()`** -> tries to modify objects field given the name and value. Can modify `final` fields
+* **`ni()`** -> simple call for `Class.newInstance()`
+* **`store()`** -> stores a variable between script recompilations
+* **`ret()`** -> retirievs previously stored valiable or tries to obtain it if not present
+
+Also, by default `java.util.Math` is statically imported, so **`pow()`**, **`sin()`**, **`cos()`**, etc are available
+
+## Special commands
+* **`import `** -> adds an import statement for a script, for example `import java.text.*`
+* **`clean`** -> completely cleans script
+* **`quit`** -> exits from REPL
+* **`bytecode`** -> prints bytecode for current script (if `javap` is present in PATH)
+
+
+## Substitutions
+* **`map(key1: 1, key2: 2, key3: "some string")`** this (invalid in Java syntax) will be substituted new a call to build-in function map: `map(new String[] { "key1", "key2", "key3" }, new Object[] { 1, 2, "some string" })`
+* **`ret("key", someCommand())`** -> will be sustituted with: `ret("key", new Provider() { Object provide() { return someCommand(); } })`. This is done to skip initialization command if value is already defined, else the Provider object will be called to retrieve the value
+
+## Default imports
+Except build-in functions these packages are imported by default:
+* **`java.util.*`**
+* **`java.text.*`**
+* **`java.io.*`**
+
+## How it's done
+It's very naive implementation of parsing, but so far it strangely works :)
+
+## Drawbacks
+As we cannot achive completely *scripting* behavior from Java, there are certain things to be aware of. First, everytime you hit `Enter` the whole script is compiled from scratch. That's why all the variables will be set anew. For example:
 ```java
-"Hello world!"
-1 + 2
-1 << 2
-Integer.MAX_VALUE
+Date d = date() // hit Enter
+d // will print the *current* date, not the date value, that we obtained earlier
 ```
-
+There is a woraround for this: build-in function `ret`:
 ```java
-int max = Integer.MIN_VALUE
-int min = Integer.MIN_VALUE
-max - min
-```
-Note that each statement **must** return something (it cannot be void). Also note that for a single line statements semicolons are optional
-
-```java
-int getInt() {
-	return 1
-}
-getInt()
+Date d = ret("d", date())
+d // will print the first obtained value
 ```
 
-```java
-int getOtherInt(int what) {
-	for (int i = 0; i < 10; i++) {
-    	if ((i % what) == 0) return i
-    }
-    return -1
-}
-getOtherInt(3)
-```
-Note, that semicolon is required if line contains brakets
+## Installation
+// javac in classpath
+// javap in classpath for bytecode
 
-### Language level
-The language level depends on `javac` from system's PATH. If it points to jdk1.8, then it's Java8, and so on.
-
-### Custom JARs
-If you wish to add a custom jar or jars as a dependency for a running script, create a folder named `lib` in ScriptJava.jar execution folder and place there your jars
-
-### Utility methods
-
-```java
-print(Object o);
-printf(String s, Object... args);
-typeof(Object o); // return human readable representation of object's type
-set(Object who, String fieldName, Object value);
-get(Object who, String fieldName);
-methods(Object who) // or a class (String.class) will print all object's class methods
-dict(Object who) // will print object's fields and it's values (without recursion)
-```
-
-For a singleline statements that want to print an object `print` & `printf` commands are the best
-```java
-print(obj)
-```
-
-If you wish to print somthing to console during some operation use `out.*` (which is `System.out.*`)
-```java
-Runnable makeRunnable() {
-	return new Runnable() {
-    	public void run() { out.println(Thread.currentThread()); }
-    };
-}
-```
-Note that in this case semicolons are required
-
-`set` method will use reflection. It's possible to change `final` fields:
-```java
-String s = "Hello World!"
-void set(s, "value", new char[] { '!' }
-s // will print !
-```
-
-### Methods
-All generated methods are static, so you must **not** define a `static` modifier for your methods.
-
-### Imports
-By default each script has these in import section:
-```java
-import java.util.*;
-import static java.lang.System.out;
-import java.io.*;
-import java.lang.reflect.*;
-```
-
-To add a custom import start your command with `import`, like this:
-```java
-import java.util.concurrent.*
-```
-You **must** import before accessing classes
-
-
-### Void
-if you want to execute a method that returns nothing (and thus cannot be printed) start your command with `void`, for example:
-```java
-void start()
-```
-
-### Clear
-You might clear a certain scope of current script by evaluating a `clear()` command:
-```java
-clear() // no arguments - clears all
-clear(var) // clears variables
-clear(void) // clears voids
-clear(met) // clears methods
-clear(imp) // clears imports
-```
-You may composite clear scopes:
-```java
-clear(var void) // clears variables & voids
-clear(imp met) // clears imports & methods
-```
-
-### Quit
-To exit execution evaluate a `quit()` command
-
-### Caveats
-* No classes (although they could be defined like `void class MyClass {private int i = 1; void someMethod() {} };` aka one liner with `void` at the beginning
-* If Threads are used they have to be set as daemon, otherwise script execution will freeze
-* Methods might be with any modifiers except for `static` as long as script will add `static` keyword at the beginning no matter what
-* No IDE support, if your are mistaken or this script fails you will have to write the last statement again (and again...)
 
 ## License
 
 ```
-  Copyright 2015 Dimitry Ivanov (mail@dimitryivanov.ru)
+  Copyright 2016 Dimitry Ivanov (cr@dimitryivanov.ru)
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
