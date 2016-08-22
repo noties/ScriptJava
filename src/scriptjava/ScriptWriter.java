@@ -45,7 +45,8 @@ class ScriptWriter implements SystemInputReader.OnNewLineListener {
             Math.class,
             IO.class,
             Range.class,
-            Str.class
+            Str.class,
+            Copy.class
     };
 
     static final String[] STATIC_IMPORTS;
