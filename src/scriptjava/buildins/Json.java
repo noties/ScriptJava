@@ -148,7 +148,7 @@ public class Json {
 
         public Object readNull() throws JsonException {
             final Object result = NULL;
-            next(2);
+            next(3);
             return result;
         }
 
@@ -210,7 +210,7 @@ public class Json {
                             pendingValue = null;
                             break;
                         }
-                        throw new JsonException("Unexpected char `%s` whilst parsing array at %d", c, i);
+                        throw new JsonException("Unexpected char `%s`(%d) whilst parsing array at %d", c, (int) c, i);
 
                     default:
                         pendingValue = readToken(token);
@@ -359,7 +359,7 @@ public class Json {
 
             final String result;
             if (builder.length() == 0) {
-                result = null;
+                result = "";
             } else {
                 result  = builder.toString();
             }
@@ -415,6 +415,13 @@ public class Json {
 
             return token;
         }
+
+//        private String createErrorFragment(int index) {
+//            final int offset = 20;
+//            final int start = Math.max(index - offset, 0);
+//            final int end = Math.min(index + offset, length);
+//            return String.format("%s_>%s<_%s", input.substring(start, index), input.charAt(index), input.substring(index + 1, end));
+//        }
     }
 
     private static Element newElementInstance(Object o) {
@@ -433,7 +440,7 @@ public class Json {
         return element;
     }
 
-    private static class ElementObject extends Element {
+    static class ElementObject extends Element {
 
         private final Map<String, Object> map;
 
@@ -453,7 +460,7 @@ public class Json {
 
         @Override
         public Object get() {
-            throw new JsonException("Not a JSON value -> a JSON object");
+            return map;
         }
 
         @Override
@@ -462,7 +469,7 @@ public class Json {
         }
     }
 
-    private static class ElementArray extends Element {
+    static class ElementArray extends Element {
 
         private final List<Object> array;
 
@@ -482,7 +489,8 @@ public class Json {
 
         @Override
         public Object get() {
-            throw new JsonException("Not a JSON object -> a JSON array");
+//            throw new JsonException("Not a JSON object -> a JSON array");
+            return array;
         }
 
         @Override
@@ -491,7 +499,7 @@ public class Json {
         }
     }
 
-    private static class ElementValue extends Element {
+    static class ElementValue extends Element {
 
         private final Object value;
 
