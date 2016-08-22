@@ -65,6 +65,9 @@ Except build-in functions these packages are imported by default:
 * **`java.text.*`**
 * **`java.io.*`**
 
+## Custom libraries
+Right now if there is a folder called `libs` inside execution directory, all jars that are inside it will be added to the script class path. Anyway you still need to import desired class first (here is no surprices).
+
 ## How it's done
 It's very naive implementation of parsing, but so far it strangely works :)
 
