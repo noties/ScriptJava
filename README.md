@@ -45,6 +45,7 @@ Writing *whole* Java code in command line seems like an overkill. Creating a cla
 * **`ni()`** -> simple call for `Class.newInstance()`
 * **`store()`** -> stores a variable between script recompilations
 * **`ret()`** -> retirievs previously stored valiable or tries to obtain it if not present
+* **`copy()`** -> copies supplied argument to the system clipboard and returns the value unmodified. `copy(exec("echo HelloThere | cowsay -e --"))` will copy result value of the `exec` call and print it.
 
 Also, by default `java.util.Math` is statically imported, so **`pow()`**, **`sin()`**, **`cos()`**, etc are available
 
