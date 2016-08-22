@@ -15,15 +15,29 @@
 
 package scriptjava.buildins;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Json {
 
     public static final Object NULL = new Object() { public String toString() { return "null"; } };
 
+    public static abstract class Element {
+
+        // call for an object's property
+        public abstract Element key(String key);
+
+        // call for array
+        public abstract Element at(int index);
+
+        // return value
+        public abstract Object get();
+    }
+
     // sometimes it can be just array...
-    public static Map<Object, Object> json(String in) {
+    public static Element json(String in) {
         return new JsonReader(in).read();
     }
 
@@ -58,7 +72,7 @@ public class Json {
             this.length = Length.len(input);
         }
 
-        public Map<Object, Object> read() throws JsonException {
+        public Element read() throws JsonException {
 
             // main entry point, here: object, array, null
             if (length == 0) {
@@ -67,7 +81,9 @@ public class Json {
 
             i = -1;
 
-            Map value;
+            Map map = null;
+            List list = null;
+
             Token token;
 
             while ((token = token()) == Token.WHITESPACE) {}
@@ -75,19 +91,28 @@ public class Json {
             switch (token){
 
                 case OBJECT:
-                    value = readObject();
+                    map = readObject();
                     break;
 
                 case ARRAY:
-                    value = readArray();
+                    list = readArray();
                     break;
 
                 default:
                     throw new JsonException("Unexpected token %s at %d", token, i);
             }
 
+            final Element element;
+            if (map != null) {
+                //noinspection unchecked
+                element = new ElementObject(map);
+            } else {
+                //noinspection unchecked
+                element = new ElementArray(list);
+            }
+
             //noinspection unchecked
-            return value;
+            return element;
         }
 
         public Boolean readBoolean() throws JsonException {
@@ -156,14 +181,12 @@ public class Json {
                 number = Long.parseLong(builder.toString());
             }
 
-//            System.out.printf("`%s`, builder: %s, number: %s (%s)%n", c, builder, number, floatingPoint);
-
             return number;
         }
 
-        public Map<Integer, Object> readArray() throws JsonException {
+        public List<Object> readArray() throws JsonException {
 
-            final Map<Integer, Object> map = new HashMap<>();
+            final List<Object> list = new ArrayList<>();
 
             int index = 0;
             Object pendingValue = null;
@@ -181,8 +204,9 @@ public class Json {
 
                     case UNKNOWN:
                         if (c == ',') {
-                            map.put(index, pendingValue);
+                            list.add(index, pendingValue);
                             index += 1;
+                            pendingValue = null;
                             break;
                         }
                         throw new JsonException("Unexpected char `%s` whilst parsing array at %d", c, i);
@@ -195,10 +219,10 @@ public class Json {
             }
 
             if (pendingValue != null) {
-                map.put(index, pendingValue);
+                list.add(index, pendingValue);
             }
 
-            return map;
+            return list;
         }
 
         public Map<String, Object> readObject() throws JsonException {
@@ -240,8 +264,6 @@ public class Json {
                     default:
                         pendingValue = readToken(token);
                 }
-
-//                System.out.printf("%s, pendingkey: %s, pendingvalue: %s%n", token, pendingKey, pendingValue);
 
                 token = token();
             }
@@ -391,6 +413,109 @@ public class Json {
             }
 
             return token;
+        }
+    }
+
+    private static Element newElementInstance(Object o) {
+        final Element element;
+        if (o == null || NULL == o) {
+            element = new Json.ElementValue(NULL);
+        } else if (o instanceof Map) {
+            //noinspection unchecked
+            element = new ElementObject((Map<String, Object>) o);
+        } else if (o instanceof List) {
+            //noinspection unchecked
+            element = new ElementArray((List<Object>) o);
+        } else {
+            element = new ElementValue(o);
+        }
+        return element;
+    }
+
+    private static class ElementObject extends Element {
+
+        private final Map<String, Object> map;
+
+        ElementObject(Map<String, Object> map) {
+            this.map = map;
+        }
+
+        @Override
+        public Element key(String key) {
+            return newElementInstance(map.get(key));
+        }
+
+        @Override
+        public Element at(int index) {
+            throw new JsonException("Not an JSON array -> a JSON object");
+        }
+
+        @Override
+        public Object get() {
+            throw new JsonException("Not a JSON value -> a JSON object");
+        }
+
+        @Override
+        public String toString() {
+            return Str.str(map);
+        }
+    }
+
+    private static class ElementArray extends Element {
+
+        private final List<Object> array;
+
+        ElementArray(List<Object> array) {
+            this.array = array;
+        }
+
+        @Override
+        public Element key(String key) {
+            throw new JsonException("Not a JSON object -> a JSON array");
+        }
+
+        @Override
+        public Element at(int index) {
+            return newElementInstance(array.get(index));
+        }
+
+        @Override
+        public Object get() {
+            throw new JsonException("Not a JSON object -> a JSON array");
+        }
+
+        @Override
+        public String toString() {
+            return Str.str(array);
+        }
+    }
+
+    private static class ElementValue extends Element {
+
+        private final Object value;
+
+        ElementValue(Object value) {
+            this.value = value;
+        }
+
+        @Override
+        public Element key(String key) {
+            throw new JsonException("Not a JSON object -> a JSON value");
+        }
+
+        @Override
+        public Element at(int index) {
+            throw new JsonException("Not a JSON array -> a JSON value");
+        }
+
+        @Override
+        public Object get() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return Str.str(value);
         }
     }
 }

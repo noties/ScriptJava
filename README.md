@@ -33,7 +33,7 @@ Writing *whole* Java code in command line seems like an overkill. Creating a cla
 * **`file()`** -> this method has different signatures. Called without parameters returns current execution folder. Called with a String as a parameter -> constructs File object with specified path
 * **`del()`** -> removes file, takes a File object or a path
 * **`write()`** -> takes a File object and it's contents as a String. Will write contents to a file
-* **`json()`** -> Super primitive json parser that always returns a Map. Please note, that arrays are represented as a `Map<Integer, Object>`
+* **`json()`** -> Super primitive json parser that returns `Element` with the following methods: `key(String)` -> retrieves an JSON object by the key; `at(int)` -> retrieves a value from JSON array at give index; `get()` -> returns JSON primitive. Please note that exception will be thrown if method called on wrong JSON type (for example `at` will be called on JSON object)
 * **`get()`** -> executes GET http request, returns response as a String
 * **`post()`** -> executes POST http request, returns response as a String
 * **`range()`** -> creates a *range* of integers to be easily interated, `for (int i: range(10))`. Returns `int[]`. has 3 signatures: `range(end)`, `range(start, end)`, `range(start, end, step)`
@@ -43,7 +43,7 @@ Writing *whole* Java code in command line seems like an overkill. Creating a cla
 * **`fromMap()`** -> constructs an object from supplied `Map<String, Object>`
 * **`set()`** -> tries to modify objects field given the name and value. Can modify `final` fields
 * **`ni()`** -> simple call for `Class.newInstance()`
-* **`store()`** -> stores a variable between script recompilations
+* **`store()`** -> stores a variable between script recompilations (actually can be useful only when removing previously retrieved value with `ret` call)
 * **`ret()`** -> retirievs previously stored valiable or tries to obtain it if not present
 * **`copy()`** -> copies supplied argument to the system clipboard and returns the value unmodified. `copy(exec("echo HelloThere | cowsay -e --"))` will copy result value of the `exec` call and print it.
 
