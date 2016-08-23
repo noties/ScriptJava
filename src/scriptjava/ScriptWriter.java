@@ -267,8 +267,13 @@ class ScriptWriter implements SystemInputReader.OnNewLineListener {
 
             // ok, if we still have pendingBody -> just append
 
+            // ok, just a simple check if it's a comment -> no need to parse anything, just ignore
+
             // check for possible substitutions
             line = StatementSubstitution.substitute(line);
+            if (!Bool.bool(line)) {
+                return false;
+            }
 
 
             if (pendingBody != null && (isContinuousStatement || StatementType.EXECUTION != previousType)) {

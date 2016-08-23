@@ -17,7 +17,6 @@
 package scriptjava;
 
 import scriptjava.buildins.Bool;
-import scriptjava.buildins.Buildins;
 import scriptjava.buildins.IO;
 
 import java.io.File;
@@ -28,8 +27,6 @@ public class Main {
     private static final String HOME_PROPERTY = "SCRIPTJAVA_HOME";
 
     public static void main(String[] args) {
-
-        // pyjama
 
         // start with a greeting message
         System.out.println(welcomeMessage());
