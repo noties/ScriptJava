@@ -23,9 +23,9 @@ import java.util.Map;
 public class Bool {
 
     // as in docs, called without arguments returns false
-    public static boolean bool() {
-        return false;
-    }
+//    public static boolean bool() {
+//        return false;
+//    }
 
     public static <T extends CharSequence> boolean bool(T value) {
         return value != null && value.length() > 0;
@@ -52,19 +52,19 @@ public class Bool {
     }
 
     public static boolean bool(byte value) {
-        return value != 0b0;
+        return value != 0;
     }
 
     public static boolean bool(Byte value) {
-        return value != null && value != 0b0;
+        return value != null && value != 0;
     }
 
     public static boolean bool(short value) {
-        return value != (short) 0;
+        return value != 0;
     }
 
     public static boolean bool(Short value) {
-        return value != null && value != (short) 0;
+        return value != null && value != 0;
     }
 
     public static boolean bool(int value) {
