@@ -69,9 +69,6 @@ Except build-in functions these packages are imported by default:
 ## Custom libraries
 Right now if there is a folder called `libs` inside execution directory, all jars that are inside it will be added to the script class path. Anyway you still need to import desired class first (here is no surprices).
 
-## How it's done
-It's very naive implementation of parsing, but so far it strangely works :)
-
 ## Drawbacks
 As we cannot achive completely *scripting* behavior from Java, there are certain things to be aware of. First, everytime you hit `Enter` the whole script is compiled from scratch. That's why all the variables will be set anew. For example:
 ```java
@@ -85,8 +82,7 @@ d // will print the first obtained value
 ```
 
 ## Installation
-// javac in classpath
-// javap in classpath for bytecode
+Before launching the executable make sure, that there is `javac` in the system PATH. Most likely that you already have it there. Also, if you wish to use `bytecode` function (that prints Java bytecode of compiled script) make sure that there is also a `javap` in the PATH.
 
 
 ## Building
