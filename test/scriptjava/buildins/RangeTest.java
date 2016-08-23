@@ -23,9 +23,6 @@ import java.util.Arrays;
 import static org.junit.Assert.assertTrue;
 import static scriptjava.buildins.Range.range;
 
-/**
- * Created by Дмитрий on 23.08.2016.
- */
 public class RangeTest {
 
     private static final int[] EMPTY = new int[0];

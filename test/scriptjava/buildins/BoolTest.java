@@ -27,9 +27,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static scriptjava.buildins.Bool.bool;
 
-/**
- * Created by Дмитрий on 23.08.2016.
- */
 public class BoolTest {
 
 //    @Test
