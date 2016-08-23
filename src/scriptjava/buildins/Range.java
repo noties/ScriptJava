@@ -33,19 +33,29 @@ public class Range {
     private static int[] createRange(int start, int end, int step) {
 
         // let's check if we can create a range, for example for start=0, end=1 we won't be iterating
-        if (end - step <= start) {
+        if (step == 0
+                || (step > 0 && ((end - start) < step))
+                || (step < 0 && ((start + end) > step))) {
             return new int[0];
         }
 
         final int length;
         {
-            final float floatSteps = ((float) end - start) / step;
             final int intSteps = (end - start) / step;
-            if (Float.compare(floatSteps, intSteps) == 0) {
-                length = intSteps;
+            if (intSteps == 0) {
+                length = 0;
             } else {
-                length = intSteps + 1;
+                final float floatSteps = ((float) end - start) / step;
+                if (Float.compare(floatSteps, intSteps) == 0) {
+                    length = intSteps;
+                } else {
+                    length = intSteps + 1;
+                }
             }
+        }
+
+        if (length == 0) {
+            return new int[0];
         }
 
         final int[] out = new int[length]; // count the elements size
