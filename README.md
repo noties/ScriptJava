@@ -89,6 +89,13 @@ d // will print the first obtained value
 // javap in classpath for bytecode
 
 
+## Building
+The main project has no dependencies, so it's a straight-forward process. However, building from IDE (when project is created from the source code)
+won't work, as current functionality requires the project's jar in the execution directory (due to build-in imports & IScript)
+
+Tests require `Gson` (for json testing)
+
+
 ## License
 
 ```
