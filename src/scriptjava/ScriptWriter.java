@@ -63,6 +63,7 @@ class ScriptWriter implements SystemInputReader.OnNewLineListener {
         void terminate();
     }
 
+    private final ScriptDependencies dependencies;
     private final File scriptFolder;
     private final ScriptCompiler compiler;
     private final ScriptClassLoader classLoader;
@@ -76,8 +77,9 @@ class ScriptWriter implements SystemInputReader.OnNewLineListener {
     private int indent;
 
     ScriptWriter(File executionFolder, File scriptFolder, OnTerminationListener listener) {
+        this.dependencies = new ScriptDependencies(executionFolder);
         this.scriptFolder = scriptFolder;
-        this.compiler = new ScriptCompiler(executionFolder, scriptFolder);
+        this.compiler = new ScriptCompiler(scriptFolder);
         this.classLoader = new ScriptClassLoader(scriptFolder);
         this.onTerminationListener = listener;
         this.javaLineParser = new JavaLineParser();
@@ -146,7 +148,7 @@ class ScriptWriter implements SystemInputReader.OnNewLineListener {
 
     // returns TRUE if compilation was successful
     boolean compileAndRun(String source) {
-        if (compiler.compile(SCRIPT_SOURCE_NAME, source)) {
+        if (compiler.compile(SCRIPT_SOURCE_NAME, source, dependencies.dependencies())) {
             try {
                 final IScript script = classLoader.createInstance(SCRIPT_CLASS_NAME);
                 script.execute();
@@ -166,44 +168,49 @@ class ScriptWriter implements SystemInputReader.OnNewLineListener {
         private static final String COMMAND_IMPORT = "import ";
         private static final String COMMAND_CLEAN = "clean";
 //        private static final String COMMAND_SAVE = "save ";
-//        private static final String COMMAND_EXEC = "exec ";
-        private static final String COMMAND_INCLUDE = "include ";
         private static final String COMMAND_BYTECODE = "bytecode";
+        private static final String COMMAND_COMPILE = "compile ";
 
         // todo, dynamic include, script file format for (save, exec) *.sj
 
         @Override
         public boolean parse(String line) {
 
-            if (COMMAND_QUIT.equals(line)) {
-                terminate();
-                return true;
-            }
+            try {
 
-            if (line.startsWith(COMMAND_IMPORT)) {
-                javaLineParser.addImport(line);
-                return true;
-            }
+                if (COMMAND_QUIT.equals(line)) {
+                    terminate();
+                    return true;
+                }
 
-            if (line.equals(COMMAND_CLEAN)) {
-                javaLineParser.clean();
-                return true;
-            }
+                if (line.startsWith(COMMAND_IMPORT)) {
+                    javaLineParser.addImport(line);
+                    return true;
+                }
+
+                if (line.equals(COMMAND_CLEAN)) {
+                    javaLineParser.clean();
+                    return true;
+                }
 //
 //            if (line.startsWith(COMMAND_SAVE)) {
 //                return true;
 //            }
-//
-//            if (line.startsWith(COMMAND_EXEC)) {
-//                // we just compile what we have here
-//                // todo.
-//            }
 
-            if (line.equals(COMMAND_BYTECODE)) {
-                // create path to our compiled classes
-                final String path = scriptFolder.getAbsolutePath() + File.separator + "Script*.class";
-                Buildins.print(Exec.exec("javap -p -c " + path));
-                return true;
+                if (line.equals(COMMAND_BYTECODE)) {
+                    // create path to our compiled classes
+                    final String path = scriptFolder.getAbsolutePath() + File.separator + "Script*.class";
+                    Buildins.print(Exec.exec("javap -p -c " + path));
+                    return true;
+                }
+
+                if (line.startsWith(COMMAND_COMPILE)) {
+                    dependencies.updateDependencies(line.substring(COMMAND_COMPILE.length()));
+                    return true;
+                }
+
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
 
             return false;

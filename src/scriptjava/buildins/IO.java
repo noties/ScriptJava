@@ -16,10 +16,7 @@
 
 package scriptjava.buildins;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
 public class IO {
 
@@ -139,6 +136,76 @@ public class IO {
             result = innerResult;
         }
         return result;
+    }
+
+    public static boolean write(File file, byte[] bytes) {
+
+        // if file is not exist -> we will create it
+        // but if it's NULL we can do anything
+        if (file == null) {
+            return false;
+        }
+
+        if (!file.exists()) {
+            try {
+                //noinspection ResultOfMethodCallIgnored
+                file.createNewFile();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+            if (!file.exists()) {
+                return false;
+            }
+        }
+
+        OutputStream outputStream = null;
+        try {
+            outputStream = new BufferedOutputStream(new FileOutputStream(file, false));
+            outputStream.write(bytes);
+
+            return true;
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+
+            return false;
+
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (Throwable t) {}
+            }
+        }
+    }
+
+    public static byte[] bytes(InputStream stream) {
+        final byte[] out;
+        if (!Bool.bool(stream)) {
+            out = null;
+        } else {
+            byte[] bytes;
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final int length = 1024 * 8;
+            final byte[] buf = new byte[length];
+            int read;
+            try {
+                while ((read = stream.read(buf, 0, length)) > -1) {
+                    baos.write(buf, 0, read);
+                }
+                baos.flush();
+                bytes = baos.toByteArray();
+            } catch (Throwable t) {
+                t.printStackTrace();
+                bytes = null;
+            } finally {
+                try {
+                    stream.close();
+                } catch (Throwable t) {}
+            }
+            out = bytes;
+        }
+        return out;
     }
 
     private IO() {

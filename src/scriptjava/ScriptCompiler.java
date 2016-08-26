@@ -17,11 +17,10 @@
 package scriptjava;
 
 import scriptjava.buildins.Bool;
+import scriptjava.buildins.IO;
 
-import java.io.*;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.io.File;
+import java.util.List;
 
 class ScriptCompiler {
 
@@ -38,65 +37,13 @@ class ScriptCompiler {
         COMPILE_STATEMENT = "javac -cp %1$s -nowarn -Xlint:none %2$s"; // 1-classpath; 2-file
     }
 
-    private final File executionFolder;
     private final File scriptFolder;
-    private final File libsFolder;
 
-    ScriptCompiler(File executionFolder, File scriptFolder) {
-        this.executionFolder = executionFolder;
+    ScriptCompiler(File scriptFolder) {
         this.scriptFolder = scriptFolder;
-        this.libsFolder = libsFolder(executionFolder);
-
-        // the thing is -> it's not enough to compile the Script with included class path
-        // we need to provide all these libs (if present) at runtime, thus we need
-        // to add custom path to our class loader
-        if (libsFolder != null) {
-            addLibsFolderToClassLoader(libsFolder);
-        }
     }
 
-    private static void addLibsFolderToClassLoader(File libsFolder) {
-
-        final File[] files = libsFolder.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".jar");
-            }
-        });
-        if (!Bool.bool(files)) {
-            return;
-        }
-
-        final ClassLoader classLoader = ScriptCompiler.class.getClassLoader();
-        if (classLoader instanceof URLClassLoader) {
-            try {
-
-                final URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
-                final Method addPath = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-                addPath.setAccessible(true);
-
-                for (File file: files) {
-                    addPath.invoke(urlClassLoader, file.toURI().toURL());
-                }
-
-                return;
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-        }
-        System.out.printf("Unable to modify classLoader to add libraries from: %s%n", libsFolder.getPath());
-    }
-
-    private static File libsFolder(File executionFolder) {
-        final File libs = new File(executionFolder, "libs");
-        if (Bool.bool(libs)) {
-            return libs;
-        } else {
-            return null;
-        }
-    }
-
-    boolean compile(String name, String source) {
+    boolean compile(String name, String source, List<String> dependencies) {
 
         final File file = new File(scriptFolder, name);
         try {
@@ -109,7 +56,7 @@ class ScriptCompiler {
         }
 
         // we write the source to this file
-        write(file, source);
+        IO.write(file, source);
 
         final Value<Boolean> result = new ValueMutable<>(Boolean.TRUE);
 
@@ -119,7 +66,7 @@ class ScriptCompiler {
             final Runtime runtime = Runtime.getRuntime();
             Process process = null;
             try {
-                process = runtime.exec(String.format(COMPILE_STATEMENT, classpath(), file.getPath()));
+                process = runtime.exec(String.format(COMPILE_STATEMENT, classpath(dependencies), file.getPath()));
                 ProcessRedirect.redirect(process.getInputStream(), null);
                 ProcessRedirect.redirect(process.getErrorStream(), new ProcessRedirect.Callback() {
                     @Override
@@ -142,43 +89,28 @@ class ScriptCompiler {
         return result.get();
     }
 
-    private String classpath() {
+    private String classpath(List<String> dependencies) {
 
-        final StringBuilder builder = new StringBuilder();
-        builder.append('\"')
-                .append(executionFolder.getPath())
-                .append(File.separator)
-                .append('*');
+        if (!Bool.bool(dependencies)) {
+            return null;
+        }
 
-        // additionally add an optional `libs` folder inside the execution folder
-        if (libsFolder != null) {
-            builder.append(CLASSPATH_SEPARATOR)
-                    .append(libsFolder.getPath())
-                    .append(File.separator)
-                    .append('*');
+        final StringBuilder builder = new StringBuilder()
+                .append('\"');
+
+        boolean first = true;
+        for (String dep: dependencies) {
+            if (first) {
+                first = false;
+            } else {
+                builder.append(CLASSPATH_SEPARATOR);
+            }
+            builder.append(dep);
         }
 
         builder.append(CLASSPATH_SEPARATOR)
                 .append('\"');
 
         return builder.toString();
-    }
-
-    private static void write(File file, String data) {
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(file, false));
-            writer.write(data);
-        } catch (Throwable t) {
-            throw new RuntimeException("Cannot write string data to a file: " + file.getAbsolutePath(), t);
-        } finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    // cannot do anything
-                }
-            }
-        }
     }
 }

@@ -25,6 +25,8 @@ public class Json {
 
     public static final Object NULL = new Object() { public String toString() { return "null"; } };
 
+    // it looks like it's not enough to have only 3 methods here
+    // we need a way to get a specific value from the element (int, long, float, double, boolean, String)
     public static abstract class Element {
 
         // call for an object's property

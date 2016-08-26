@@ -16,6 +16,7 @@
 
 package scriptjava.buildins;
 
+import java.net.URLEncoder;
 import java.util.*;
 
 public class Buildins {
@@ -37,6 +38,24 @@ public class Buildins {
     public static void printf(String message, Object... args) {
         System.out.printf(message, args);
         System.out.println();
+    }
+
+    // URL encode
+    public static String enc(String in) {
+        final String out;
+        if (Bool.bool(in)) {
+            String encoded;
+            try {
+                encoded = URLEncoder.encode(in, "UTF-8");
+            } catch (Throwable t) {
+                t.printStackTrace();
+                encoded = null;
+            }
+            out = encoded;
+        } else {
+            out = in;
+        }
+        return out;
     }
 
     public static String bin(long value) {
